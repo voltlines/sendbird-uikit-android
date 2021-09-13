@@ -82,6 +82,8 @@ public class ChannelListActivity extends AppCompatActivity {
     protected ChannelListFragment createChannelListFragment() {
         return new ChannelListFragment.Builder()
                 .setUseHeader(true)
+                .setUseHeaderRightButton(false)
+                .setHeaderTitle("Volt Lines Messaging Service")
                 .build();
     }
 
