@@ -1522,7 +1522,7 @@ public class ChannelFragment extends BaseGroupChannelFragment implements OnItemC
          * @return This Builder object to allow for chaining of calls to set methods.
          */
         public Builder setInputLeftButtonIconResId(@DrawableRes int resId) {
-            return setInputLeftButtonIcon(resId, null);
+            return setInputLeftButtonIcon(resId, ColorStateList.valueOf(Color.parseColor("#144CFF")));
         }
 
         /**
@@ -1546,7 +1546,7 @@ public class ChannelFragment extends BaseGroupChannelFragment implements OnItemC
          * @return This Builder object to allow for chaining of calls to set methods.
          */
         public Builder setInputRightButtonIconResId(@DrawableRes int resId) {
-            return setInputRightButtonIcon(resId, null);
+            return setInputRightButtonIcon(resId, ColorStateList.valueOf(Color.parseColor("#144CFF")));
         }
 
         /**

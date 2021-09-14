@@ -35,6 +35,8 @@
     <color name="ondark_02">#80ffffff</color>
     <color name="ondark_03">#61ffffff</color>
     <color name="ondark_04">#1effffff</color>
+    <color name="my_message_light">#E4EBFF</color>
+    <color name="my_message_dark">#CFD7EF</color>
     <color name="information">#adc9ff</color>
     <color name="highlight">#fff2b6</color>
 </resources>
