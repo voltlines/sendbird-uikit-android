@@ -74,6 +74,7 @@ public class ChannelActivity extends AppCompatActivity {
         final Intent intent = getIntent();
         ChannelFragment.Builder builder = new ChannelFragment.Builder(channelUrl)
                 .setUseHeader(true)
+                .setUseHeaderRightButton(false)
                 .setStartingPoint(intent.getLongExtra(StringSet.KEY_STARTING_POINT, Long.MAX_VALUE));
         if (intent.hasExtra(StringSet.KEY_HIGHLIGHT_MESSAGE_INFO)) {
             builder.setHighlightMessageInfo(intent.getParcelableExtra(StringSet.KEY_HIGHLIGHT_MESSAGE_INFO));
