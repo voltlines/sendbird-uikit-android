@@ -94,9 +94,10 @@ public class ChannelPreview extends FrameLayout {
         int pushEnabledTint = SendBirdUIKit.getDefaultThemeMode().getMonoTintResId();
         channelPreview.ivPushEnabled.setImageDrawable(DrawableUtils.setTintList(channelPreview.getContext(), R.drawable.icon_notifications_off_filled, pushEnabledTint));
         channelPreview.tvTitle.setText(ChannelUtils.makeTitleText(channelPreview.getContext(), channel));
+        channelPreview.tvTitle.setTextColor(ContextCompat.getColor(channelPreview.getContext(),R.color.primary_volt_lines));
         channelPreview.tvUnreadCount.setText(unreadMessageCount > 99 ? channelPreview.getContext().getString(R.string.sb_text_channel_list_unread_count_max) : String.valueOf(unreadMessageCount));
         channelPreview.tvUnreadCount.setVisibility(unreadMessageCount > 0 ? View.VISIBLE : View.GONE);
-        channelPreview.tvUnreadCount.setBackgroundResource(SendBirdUIKit.isDarkMode() ? R.drawable.sb_shape_unread_message_count_dark : R.drawable.sb_shape_unread_message_count);
+        channelPreview.tvUnreadCount.setBackgroundResource(R.drawable.sb_shape_unread_message_volt_lines_color);
         channelPreview.ivFrozen.setVisibility(channel.isFrozen() ? View.VISIBLE : View.GONE);
         channelPreview.ivBroadcast.setVisibility(channel.isBroadcast() ? View.VISIBLE : View.GONE);
         ChannelUtils.loadChannelCover(channelPreview.coverView, channel);
@@ -111,6 +112,8 @@ public class ChannelPreview extends FrameLayout {
         if (channel.isFrozen()) {
             ColorStateList frozenTint = SendBirdUIKit.getDefaultThemeMode().getPrimaryTintColorStateList(context);
             channelPreview.ivFrozen.setImageDrawable(DrawableUtils.setTintList(context, R.drawable.icon_freeze, frozenTint));
+            channelPreview.tvTitle.setTextColor(ContextCompat.getColor(channelPreview.getContext(),R.color.freeze_channel_color));
+
         }
 
         int memberCount = channel.getMemberCount();

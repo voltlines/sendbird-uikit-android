@@ -1,7 +1,7 @@
 <resources>
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="colorPrimary">@color/primary_300</item>
-        <item name="colorPrimaryDark">@color/primary_500</item>
+        <item name="colorPrimary">@color/primary_volt_lines</item>
+        <item name="colorPrimaryDark">@color/primary_volt_lines</item>
         <item name="colorAccent">@color/secondary_300</item>
     </style>
 

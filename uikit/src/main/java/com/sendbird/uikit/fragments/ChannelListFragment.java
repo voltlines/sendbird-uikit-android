@@ -1,6 +1,7 @@
 package com.sendbird.uikit.fragments;
 
 import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -124,7 +125,7 @@ public class ChannelListFragment extends BaseGroupChannelFragment {
             useHeaderRightButton = args.getBoolean(StringSet.KEY_USE_HEADER_RIGHT_BUTTON, true);
             headerLeftButtonIconResId = args.getInt(StringSet.KEY_HEADER_LEFT_BUTTON_ICON_RES_ID, R.drawable.icon_arrow_left);
             headerRightButtonIconResId = args.getInt(StringSet.KEY_HEADER_RIGHT_BUTTON_ICON_RES_ID, R.drawable.icon_create);
-            headerLeftButtonIconTint = args.getParcelable(StringSet.KEY_HEADER_LEFT_BUTTON_ICON_TINT);
+            headerLeftButtonIconTint = ColorStateList.valueOf(Color.parseColor("#ff5b14"));
             headerRightButtonIconTint = args.getParcelable(StringSet.KEY_HEADER_RIGHT_BUTTON_ICON_TINT);
         }
 
@@ -136,9 +137,8 @@ public class ChannelListFragment extends BaseGroupChannelFragment {
         binding.abvChannelList.setUseRightButton(useHeaderRightButton);
 
         binding.abvChannelList.setLeftImageButtonResource(headerLeftButtonIconResId);
-        if (args != null && args.containsKey(StringSet.KEY_HEADER_LEFT_BUTTON_ICON_RES_ID)) {
-            binding.abvChannelList.setLeftImageButtonTint(headerLeftButtonIconTint);
-        }
+        binding.abvChannelList.setLeftImageButtonTint(headerLeftButtonIconTint);
+
         binding.abvChannelList.setRightImageButtonResource(headerRightButtonIconResId);
         if (args != null && args.containsKey(StringSet.KEY_HEADER_RIGHT_BUTTON_ICON_RES_ID)) {
             binding.abvChannelList.setRightImageButtonTint(headerRightButtonIconTint);

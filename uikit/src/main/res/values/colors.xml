@@ -8,6 +8,8 @@
     <color name="secondary_500">#066858</color>
     <color name="secondary_400">#027d69</color>
     <color name="secondary_300">#259c72</color>
+    <color name="primary_volt_lines">#ff5b14</color>
+    <color name="freeze_channel_color">#797979</color>
     <color name="secondary_200">#69c085</color>
     <color name="secondary_100">#a8e2ab</color>
     <color name="error_500">#9d091e</color>

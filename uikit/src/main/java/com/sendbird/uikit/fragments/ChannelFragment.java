@@ -6,6 +6,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -284,7 +285,7 @@ public class ChannelFragment extends BaseGroupChannelFragment implements OnItemC
             useHeaderRightButton = args.getBoolean(StringSet.KEY_USE_HEADER_RIGHT_BUTTON, true);
             headerLeftButtonIconResId = args.getInt(StringSet.KEY_HEADER_LEFT_BUTTON_ICON_RES_ID, R.drawable.icon_arrow_left);
             headerRightButtonIconResId = args.getInt(StringSet.KEY_HEADER_RIGHT_BUTTON_ICON_RES_ID, R.drawable.icon_info);
-            headerLeftButtonIconTint = args.getParcelable(StringSet.KEY_HEADER_LEFT_BUTTON_ICON_TINT);
+            headerLeftButtonIconTint = ColorStateList.valueOf(Color.parseColor("#ff5b14"));
             headerRightButtonIconTint = args.getParcelable(StringSet.KEY_HEADER_RIGHT_BUTTON_ICON_TINT);
             headerTitle = args.getString(StringSet.KEY_HEADER_TITLE, null);
         }
@@ -299,9 +300,8 @@ public class ChannelFragment extends BaseGroupChannelFragment implements OnItemC
         }
 
         binding.chvChannelHeader.setLeftImageButtonResource(headerLeftButtonIconResId);
-        if (args != null && args.containsKey(StringSet.KEY_HEADER_LEFT_BUTTON_ICON_RES_ID)) {
-            binding.chvChannelHeader.setLeftImageButtonTint(headerLeftButtonIconTint);
-        }
+        binding.chvChannelHeader.setLeftImageButtonTint(headerLeftButtonIconTint);
+
         binding.chvChannelHeader.setRightImageButtonResource(headerRightButtonIconResId);
         if (args != null && args.containsKey(StringSet.KEY_HEADER_RIGHT_BUTTON_ICON_RES_ID)) {
             binding.chvChannelHeader.setRightImageButtonTint(headerRightButtonIconTint);
