@@ -291,6 +291,7 @@ public class ChannelFragment extends BaseGroupChannelFragment implements OnItemC
         }
 
         binding.chvChannelHeader.setVisibility(useHeader ? View.VISIBLE : View.GONE);
+        binding.chvChannelHeader.getTitleTextView().setTextColor(getContext().getResources().getColor(R.color.primary_volt_lines));
 
         binding.chvChannelHeader.setUseLeftImageButton(useHeaderLeftButton);
         binding.chvChannelHeader.setUseRightButton(useHeaderRightButton);
