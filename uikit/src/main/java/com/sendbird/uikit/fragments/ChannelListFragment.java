@@ -52,7 +52,8 @@ public class ChannelListFragment extends BaseGroupChannelFragment {
     private OnItemClickListener<GroupChannel> itemClickListener;
     private OnItemLongClickListener<GroupChannel> itemLongClickListener;
 
-    public ChannelListFragment(){}
+    public ChannelListFragment() {
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -282,20 +283,14 @@ public class ChannelListFragment extends BaseGroupChannelFragment {
             itemLongClickListener = (view1, position, channel) -> {
                 Logger.d("++ ChannelListFragment::onItemLongClicked()");
                 DialogListItem pushOnOff = new DialogListItem(ChannelUtils.isChannelPushOff(channel) ? R.string.sb_text_channel_list_push_on : R.string.sb_text_channel_list_push_off);
-                DialogListItem leaveChannel = new DialogListItem(R.string.sb_text_channel_list_leave);
-                DialogListItem[] items = {pushOnOff, leaveChannel};
+                DialogListItem[] items = {pushOnOff};
 
                 if (isActive() && getFragmentManager() != null) {
                     DialogUtils.buildItems(ChannelUtils.makeTitleText(getContext(), channel),
                             (int) getResources().getDimension(R.dimen.sb_dialog_width_280),
                             items, (v, p, key) -> {
-                                if (key == R.string.sb_text_channel_list_leave) {
-                                    Logger.dev("leave channel");
-                                    leaveChannel(channel);
-                                } else {
-                                    Logger.dev("change push notifications");
-                                    viewModel.setPushNotification(channel, ChannelUtils.isChannelPushOff(channel));
-                                }
+                                Logger.dev("change push notifications");
+                                viewModel.setPushNotification(channel, ChannelUtils.isChannelPushOff(channel));
                             }).showSingle(getFragmentManager());
                 }
             };
@@ -367,9 +362,9 @@ public class ChannelListFragment extends BaseGroupChannelFragment {
 
         /**
          * Sets the custom channel fragment. It must inherit {@link ChannelListFragment}.
+         *
          * @param fragment custom channel list fragment.
          * @return This Builder object to allow for chaining of calls to set methods.
-         *
          * @since 1.0.4
          */
         public <T extends ChannelListFragment> Builder setCustomChannelListFragment(T fragment) {
@@ -437,7 +432,7 @@ public class ChannelListFragment extends BaseGroupChannelFragment {
          * Sets the icon on the left button of the header.
          *
          * @param resId the resource identifier of the drawable.
-         * @param tint Color state list to use for tinting this resource, or null to clear the tint.
+         * @param tint  Color state list to use for tinting this resource, or null to clear the tint.
          * @return This Builder object to allow for chaining of calls to set methods.
          * @since 2.1.0
          */
@@ -461,7 +456,7 @@ public class ChannelListFragment extends BaseGroupChannelFragment {
          * Sets the icon on the right button of the header.
          *
          * @param resId the resource identifier of the drawable.
-         * @param tint Color state list to use for tinting this resource, or null to clear the tint.
+         * @param tint  Color state list to use for tinting this resource, or null to clear the tint.
          * @return This Builder object to allow for chaining of calls to set methods.
          * @since 2.1.0
          */
@@ -476,7 +471,6 @@ public class ChannelListFragment extends BaseGroupChannelFragment {
          *
          * @param isIncludeEmpty Flag to include empty channels.
          * @return This Builder object to allow for chaining of calls to set methods.
-         *
          * @deprecated As of 1.0.5, replaced by {@link GroupChannelListQuery#setIncludeEmpty(boolean)} )}. If the GroupChannelListQuery was set, this value will be ignored.
          */
         @Deprecated
@@ -542,9 +536,9 @@ public class ChannelListFragment extends BaseGroupChannelFragment {
 
         /**
          * Sets the query instance to get <code>GroupChannel</code>s the current <code>User</code> has joined.
+         *
          * @param query The GroupChannelListQuery instance that you want to use.
          * @return This Builder object to allow for chaining of calls to set methods.
-         *
          * @since 1.0.5
          */
         public Builder setGroupChannelListQuery(GroupChannelListQuery query) {
@@ -567,7 +561,7 @@ public class ChannelListFragment extends BaseGroupChannelFragment {
          * Sets the icon when the data is not exists.
          *
          * @param resId the resource identifier of the drawable.
-         * @param tint Color state list to use for tinting this resource, or null to clear the tint.
+         * @param tint  Color state list to use for tinting this resource, or null to clear the tint.
          * @return This Builder object to allow for chaining of calls to set methods.
          * @since 2.1.0
          */
