@@ -13,6 +13,7 @@
     <color name="secondary_200">#69c085</color>
     <color name="secondary_100">#a8e2ab</color>
     <color name="error_500">#9d091e</color>
+    <color name="user_name">#FF1414</color>
     <color name="error_400">#bf0711</color>
     <color name="error_300">#de360b</color>
     <color name="error_200">#f66161</color>

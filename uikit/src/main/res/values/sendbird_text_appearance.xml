@@ -962,7 +962,7 @@
     <item name="android:textStyle">bold</item>
     <item name="android:textSize">12sp</item>
     <item name="android:lineSpacingExtra">0sp</item>
-    <item name="android:textColor">@color/onlight_02</item>
+    <item name="android:textColor">@color/user_name</item>
   </style>
 
   <style name="SendbirdCaption1OnDark03">

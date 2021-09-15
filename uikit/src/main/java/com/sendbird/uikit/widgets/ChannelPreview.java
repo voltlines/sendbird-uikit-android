@@ -119,6 +119,9 @@ public class ChannelPreview extends FrameLayout {
         int memberCount = channel.getMemberCount();
         channelPreview.tvMemberCount.setVisibility(memberCount > 2 ? View.VISIBLE : View.GONE);
         channelPreview.tvMemberCount.setText(ChannelUtils.makeMemberCountText(channel.getMemberCount()));
+        // tvMemberCount use SendbirdCaption1OnLight02 that appearance but we changed color of that appearance for user names
+        // so that's why we added setTextColor instead of setTextColor of setTextAppearance at the same time
+        channelPreview.tvMemberCount.setTextColor(context.getResources().getColor(R.color.onlight_02));
 
         channelPreview.tvUpdatedAt.setText(String.valueOf(DateUtils.formatDateTime(channelPreview.getContext(), lastMessage != null ? lastMessage.getCreatedAt() : channel.getCreatedAt())));
         setLastMessage(channelPreview.tvLastMessage, channel);
