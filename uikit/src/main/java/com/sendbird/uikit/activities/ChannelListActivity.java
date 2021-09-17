@@ -83,7 +83,7 @@ public class ChannelListActivity extends AppCompatActivity {
         return new ChannelListFragment.Builder()
                 .setUseHeader(true)
                 .setUseHeaderRightButton(false)
-                .setHeaderTitle("Volt Lines Messaging Service")
+                .setHeaderTitle("Sohbetler")
                 .build();
     }
 
