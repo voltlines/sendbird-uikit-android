@@ -237,7 +237,7 @@
     </style>
 
     <style name="Widget.SendBird.Message.User">
-        <item name="sb_message_me_text_appearance">@style/SendbirdBody3OnDark01</item>
+        <item name="sb_message_me_text_appearance">@style/SendbirdBody3OnLight01</item>
         <item name="sb_message_other_text_appearance">@style/SendbirdBody3OnLight01</item>
         <item name="sb_message_me_background">@drawable/sb_shape_chat_bubble</item>
         <item name="sb_message_other_background">@drawable/sb_shape_chat_bubble</item>
