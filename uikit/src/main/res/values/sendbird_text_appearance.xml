@@ -233,7 +233,7 @@
   </style>
 
   <style name="SendbirdSubtitle1OnLight01">
-    <item name="android:fontFamily">sans-serif-medium</item>
+    <item name="android:fontFamily">@font/gotham_rounded_medium</item>
     <item name="android:textStyle">normal</item>
     <item name="android:textSize">16sp</item>
     <item name="android:letterSpacing">-0.01</item>
@@ -830,7 +830,7 @@
   </style>
 
   <style name="SendbirdBody3OnLight03">
-    <item name="android:fontFamily">sans-serif</item>
+    <item name="android:fontFamily">@font/gotham_rounded_book</item>
     <item name="android:textStyle">normal</item>
     <item name="android:textSize">14sp</item>
     <item name="android:lineSpacingExtra">6sp</item>
@@ -918,7 +918,7 @@
   </style>
 
   <style name="SendbirdBody3OnLight01">
-    <item name="android:fontFamily">sans-serif</item>
+    <item name="android:fontFamily">@font/gotham_rounded_book</item>
     <item name="android:textStyle">normal</item>
     <item name="android:textSize">14sp</item>
     <item name="android:lineSpacingExtra">6sp</item>
@@ -958,7 +958,7 @@
   </style>
 
   <style name="SendbirdCaption1OnLight02">
-    <item name="android:fontFamily">sans-serif</item>
+    <item name="android:fontFamily">@font/gotham_rounded_medium</item>
     <item name="android:textStyle">bold</item>
     <item name="android:textSize">12sp</item>
     <item name="android:lineSpacingExtra">0sp</item>
@@ -1374,7 +1374,7 @@
   </style>
 
   <style name="SendbirdCaption4OnLight03">
-    <item name="android:fontFamily">sans-serif</item>
+    <item name="android:fontFamily">@font/gotham_rounded_book</item>
     <item name="android:textStyle">normal</item>
     <item name="android:textSize">11sp</item>
     <item name="android:lineSpacingExtra">1sp</item>
