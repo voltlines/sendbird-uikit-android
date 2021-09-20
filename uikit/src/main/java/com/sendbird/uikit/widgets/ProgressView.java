@@ -27,7 +27,7 @@ public class ProgressView extends ProgressBar {
 
     private void init(Context context) {
         int loadingTint = SendBirdUIKit.getDefaultThemeMode().getPrimaryTintResId();
-        Drawable loading = DrawableUtils.setTintList(context, R.drawable.sb_progress, loadingTint);
+        Drawable loading = DrawableUtils.setTintList(context, R.drawable.sb_progress, R.color.primary_volt_lines);
         this.setIndeterminateDrawable(loading);
     }
 }

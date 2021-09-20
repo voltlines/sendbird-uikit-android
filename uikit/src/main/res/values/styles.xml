@@ -119,7 +119,7 @@
         <item name="sb_message_typing_indicator_textappearance">@style/SendbirdCaption1OnLight02</item>
         <item name="sb_message_scroll_bottom_background">@drawable/selector_scroll_bottom_light</item>
         <item name="sb_message_scroll_bottom_icon">@drawable/icon_chevron_down</item>
-        <item name="sb_message_scroll_bottom_icon_tint">@color/primary_300</item>
+        <item name="sb_message_scroll_bottom_icon_tint">@color/dark_blue</item>
     </style>
 
     <style name="Widget.SendBird.SelectChannelTypeView">
@@ -149,7 +149,7 @@
         <item name="sb_dialog_view_edit_text_tint">@color/primary_300</item>
         <item name="sb_dialog_view_edit_text_cursor_drawable">@drawable/sb_message_input_cursor_light</item>
         <item name="sb_dialog_view_edit_text_hint_color">@color/onlight_03</item>
-        <item name="sb_dialog_view_icon_tint">@color/primary_300</item>
+        <item name="sb_dialog_view_icon_tint">@color/dark_blue</item>
 
         <item name="sb_dialog_view_positive_button_text_appearance">@style/SendbirdButtonPrimary300</item>
         <item name="sb_dialog_view_positive_button_text_color">@color/sb_button_uncontained_text_color_light</item>

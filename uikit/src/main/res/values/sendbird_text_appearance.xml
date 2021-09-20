@@ -244,7 +244,7 @@
   <style name="SendbirdSubtitle1Error300">
     <item name="android:fontFamily">sans-serif-medium</item>
     <item name="android:textStyle">normal</item>
-    <item name="android:textSize">16sp</item>
+    <item name="android:textSize">14sp</item>
     <item name="android:letterSpacing">-0.01</item>
     <item name="android:lineSpacingExtra">6sp</item>
     <item name="android:textColor">@color/error_300</item>

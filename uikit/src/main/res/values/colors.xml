@@ -39,5 +39,6 @@
     <color name="my_message_light">#E4EBFF</color>
     <color name="my_message_dark">#CFD7EF</color>
     <color name="information">#adc9ff</color>
+    <color name="dark_blue">#144CFF</color>
     <color name="highlight">#fff2b6</color>
 </resources>
