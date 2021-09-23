@@ -433,7 +433,7 @@ public class ChannelFragment extends BaseGroupChannelFragment implements OnItemC
         });
 
         if (args != null && args.containsKey(StringSet.KEY_EMPTY_ICON_RES_ID)) {
-            int emptyIconResId = args.getInt(StringSet.KEY_EMPTY_ICON_RES_ID, R.drawable.icon_chat);
+            int emptyIconResId = args.getInt(StringSet.KEY_EMPTY_ICON_RES_ID, R.drawable.ic_no_message);
             binding.statusFrame.setEmptyIcon(emptyIconResId);
             ColorStateList emptyIconTint = args.getParcelable(StringSet.KEY_EMPTY_ICON_TINT);
             binding.statusFrame.setIconTint(emptyIconTint);
