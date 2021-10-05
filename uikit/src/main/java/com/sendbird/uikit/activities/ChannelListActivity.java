@@ -84,6 +84,7 @@ public class ChannelListActivity extends AppCompatActivity {
                 .setUseHeader(true)
                 .setUseHeaderRightButton(false)
                 .setHeaderTitle("Sohbetler")
+                .setEmptyIcon(R.drawable.ic_no_message)
                 .build();
     }
 
