@@ -20,8 +20,7 @@
     <string name="sb_text_channel_list_push_on">Bildirimleri aç</string>
     <string name="sb_text_channel_list_push_off">Bildirimleri kapat</string>
     <string name="sb_text_channel_list_leave">Leave channel</string>
-    <string name="sb_text_channel_list_empty">Yolculugunuz planlandiginda sürücü ve yolcularla buradan iletişim kurabilirsiniz.
-</string>
+    <string name="sb_text_channel_list_empty">Sohbetler Özelliğimiz Çok Yakında Sizlerle.</string>
 
     <!-- Channel -->
     <string name="sb_text_channel_message_badge_edited">&#160;(düzenlendi)</string>
