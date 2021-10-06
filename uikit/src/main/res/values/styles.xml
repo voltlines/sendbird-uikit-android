@@ -189,7 +189,7 @@
 
     <style name="Widget.SendBird.StatusFrame">
         <item name="sb_status_frame_background">@color/background_50</item>
-        <item name="sb_status_frame_text_appearance">@style/SendbirdBody3OnLight03</item>
+        <item name="sb_status_frame_text_appearance">@style/VoltlinesEmptyListBody3OnLight03</item>
         <item name="sb_status_frame_icon_tint">@color/onlight_03</item>
         <item name="sb_status_frame_action_text_appearance">@style/SendbirdButtonPrimary300</item>
         <item name="sb_status_frame_action_background">@drawable/selector_button_retry_light</item>
