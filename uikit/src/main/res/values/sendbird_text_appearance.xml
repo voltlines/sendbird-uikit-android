@@ -838,7 +838,7 @@
   </style>
 
   <style name="VoltlinesEmptyListBody3OnLight03">
-    <item name="android:fontFamily">@font/nunito_regular</item>
+    <item name="android:fontFamily">@font/nunito_light</item>
     <item name="android:textStyle">normal</item>
     <item name="android:textSize">18sp</item>
     <item name="android:lineSpacingExtra">6sp</item>
