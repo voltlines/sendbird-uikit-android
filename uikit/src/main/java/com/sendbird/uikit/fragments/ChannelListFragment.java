@@ -293,11 +293,6 @@ public class ChannelListFragment extends BaseGroupChannelFragment {
                 if (isActive() && getFragmentManager() != null) {
                     DialogUtils.buildItems(ChannelUtils.makeTitleText(getContext(), channel),
                             (int) getResources().getDimension(R.dimen.sb_dialog_width_280),
-<<<<<<< HEAD
-                            items, (v, p, key) -> {
-                                Logger.dev("change push notifications");
-                                viewModel.setPushNotification(channel, ChannelUtils.isChannelPushOff(channel));
-=======
                             items, (v, p, item) -> {
                                 final int key = item.getKey();
                                 if (key == R.string.sb_text_channel_list_leave) {
@@ -307,7 +302,6 @@ public class ChannelListFragment extends BaseGroupChannelFragment {
                                     Logger.dev("change push notifications");
                                     viewModel.setPushNotification(channel, ChannelUtils.isChannelPushOff(channel));
                                 }
->>>>>>> main
                             }).showSingle(getFragmentManager());
                 }
             };

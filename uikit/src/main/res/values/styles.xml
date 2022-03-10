@@ -153,12 +153,7 @@
         <item name="sb_dialog_view_edit_text_tint">@color/primary_300</item>
         <item name="sb_dialog_view_edit_text_cursor_drawable">@drawable/sb_message_input_cursor_light</item>
         <item name="sb_dialog_view_edit_text_hint_color">@color/onlight_03</item>
-<<<<<<< HEAD
         <item name="sb_dialog_view_icon_tint">@color/dark_blue</item>
-=======
-        <item name="sb_dialog_view_icon_tint">@color/sb_selector_enabled_primary_light</item>
->>>>>>> main
-
         <item name="sb_dialog_view_positive_button_text_appearance">@style/SendbirdButtonPrimary300</item>
         <item name="sb_dialog_view_positive_button_text_color">@color/sb_button_uncontained_text_color_light</item>
         <item name="sb_dialog_view_positive_button_background">@drawable/sb_button_uncontained_background_light</item>
