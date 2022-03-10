@@ -85,6 +85,12 @@ public class ChannelListFragment extends BaseGroupChannelFragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        if (adapter != null) adapter.notifyDataSetChanged();
+    }
+
+    @Override
     protected void onReadyFailure() {
         setErrorFrame();
     }
@@ -205,8 +211,7 @@ public class ChannelListFragment extends BaseGroupChannelFragment {
             query.setIncludeEmpty(includeEmpty);
         }
 
-        viewModel = new ViewModelProvider(this, new ViewModelFactory(query)).get(ChannelListViewModel.class);
-        getLifecycle().addObserver(viewModel);
+        viewModel = new ViewModelProvider(getViewModelStore(), new ViewModelFactory()).get(ChannelListViewModel.class);
 
         initAdapter();
         binding.rvGroupChannelList.setAdapter(adapter);
@@ -230,7 +235,7 @@ public class ChannelListFragment extends BaseGroupChannelFragment {
             adapter.setItems(groupChannels);
         });
         viewModel.getErrorToast().observe(this, this::toastError);
-        viewModel.loadInitial();
+        viewModel.loadInitial(query);
 
         adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
@@ -288,9 +293,21 @@ public class ChannelListFragment extends BaseGroupChannelFragment {
                 if (isActive() && getFragmentManager() != null) {
                     DialogUtils.buildItems(ChannelUtils.makeTitleText(getContext(), channel),
                             (int) getResources().getDimension(R.dimen.sb_dialog_width_280),
+<<<<<<< HEAD
                             items, (v, p, key) -> {
                                 Logger.dev("change push notifications");
                                 viewModel.setPushNotification(channel, ChannelUtils.isChannelPushOff(channel));
+=======
+                            items, (v, p, item) -> {
+                                final int key = item.getKey();
+                                if (key == R.string.sb_text_channel_list_leave) {
+                                    Logger.dev("leave channel");
+                                    leaveChannel(channel);
+                                } else {
+                                    Logger.dev("change push notifications");
+                                    viewModel.setPushNotification(channel, ChannelUtils.isChannelPushOff(channel));
+                                }
+>>>>>>> main
                             }).showSingle(getFragmentManager());
                 }
             };

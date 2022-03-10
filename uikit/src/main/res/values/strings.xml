@@ -30,8 +30,10 @@
     <string name="sb_text_channel_anchor_save">Kaydet</string>
     <string name="sb_text_channel_anchor_edit">Düzenle</string>
     <string name="sb_text_channel_anchor_delete">Sil</string>
+    <string name="sb_text_channel_anchor_reply">Reply</string>
     <string name="sb_text_channel_anchor_retry">Tekrar Dene</string>
     <string name="sb_text_channel_input_text_hint">Bir mesaj yaz</string>
+    <string name="sb_text_channel_input_reply_text_hint">Reply to message</string>
     <string name="sb_text_channel_input_camera">Kamera</string>
     <string name="sb_text_channel_input_gallery">Fotoğraf Galerisi</string>
     <string name="sb_text_channel_input_document">Dosyalar</string>
@@ -176,4 +178,8 @@ Ayarlardan izin verin.</string>
     <string name="sb_text_search_result_empty">Sonuç bulunamadı.</string>
     <string name="sb_text_error_search_failure">Something is wrong</string>
 
+    <string name="sb_text_you">You</string>
+    <string name="sb_text_reply_to">Reply to %s</string>
+    <string name="sb_text_replied_to">%s replied to %s</string>
+    <string name="sb_text_error_original_message_not_found">Couldn\'t find the original message for this reply.</string>
 </resources>

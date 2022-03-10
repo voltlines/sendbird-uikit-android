@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.sendbird.android.GroupChannel;
 import com.sendbird.android.Member;
+import com.sendbird.android.SendBird;
 import com.sendbird.uikit.R;
 import com.sendbird.uikit.SendBirdUIKit;
 import com.sendbird.uikit.activities.adapter.MemberListAdapter;
@@ -170,7 +171,7 @@ abstract public class MemberTypeListFragment extends BaseGroupChannelFragment im
     }
 
     private void initMemberList(@NonNull GroupChannel channel) {
-        UserTypeListViewModel viewModel = new ViewModelProvider(getActivity(), new ViewModelFactory(channel, customQueryHandler)).get(channel.getUrl(), UserTypeListViewModel.class);
+        UserTypeListViewModel viewModel = new ViewModelProvider(getViewModelStore(), new ViewModelFactory(channel, customQueryHandler)).get(channel.getUrl(), UserTypeListViewModel.class);
         getLifecycle().addObserver(viewModel);
         if (adapter == null) {
             adapter = new MemberListAdapter();
@@ -261,7 +262,8 @@ abstract public class MemberTypeListFragment extends BaseGroupChannelFragment im
      */
     protected void onProfileClicked(View view, int position, Member member) {
         if (getContext() == null || getFragmentManager() == null) return;
-        DialogUtils.buildUserProfile(getContext(), member, true, null, loadingDialogHandler).showSingle(getFragmentManager());
+        boolean useChannelCreateButton = !member.getUserId().equals(SendBird.getCurrentUser().getUserId());
+        DialogUtils.buildUserProfile(getContext(), member, useChannelCreateButton, null, loadingDialogHandler).showSingle(getFragmentManager());
     }
 
     /**

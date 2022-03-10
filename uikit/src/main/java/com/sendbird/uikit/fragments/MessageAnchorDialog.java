@@ -19,19 +19,41 @@ import com.sendbird.uikit.model.DialogListItem;
 class MessageAnchorDialog {
     private final static Handler mainHandler = new Handler(Looper.getMainLooper());
     private final View anchorView;
+    private final DialogView contentView;
     private final View parent;
-    private final DialogListItem[] items;
-    private OnItemClickListener<Integer> itemClickListener;
+    private OnItemClickListener<DialogListItem> itemClickListener;
     private final PopupWindow window;
     private final Context context;
+    private final View.OnLayoutChangeListener layoutChangeListener;
+    private PopupWindow.OnDismissListener dismissListener;
 
     private MessageAnchorDialog(@NonNull View anchorView, @NonNull View parent, @NonNull DialogListItem[] items) {
         this.context = anchorView.getContext();
         this.anchorView = anchorView;
         this.parent = parent;
-        this.items = items;
         int width = (int) context.getResources().getDimension(R.dimen.sb_dialog_width_212);
         this.window = new PopupWindow(width, WindowManager.LayoutParams.WRAP_CONTENT);
+        this.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+
+        contentView = new DialogView(context);
+        contentView.setItems(items, (view, position, item) -> {
+            window.dismiss();
+            if (itemClickListener != null) {
+                itemClickListener.onItemClick(view, position, item);
+            }
+        }, false, R.dimen.sb_size_16);
+        contentView.setBackgroundAnchor();
+
+        layoutChangeListener = (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            int x = getXoff(anchorView);
+            int y = getYoff(parent, anchorView, contentView);
+            window.update(x, y, -1, -1, true);
+        };
+
+        this.window.setOnDismissListener(() -> {
+            anchorView.getRootView().removeOnLayoutChangeListener(layoutChangeListener);
+            if (dismissListener != null) dismissListener.onDismiss();
+        });
     }
 
     public void show() {
@@ -61,25 +83,15 @@ class MessageAnchorDialog {
     }
 
     private void showAnchorList() {
-        final DialogView dialogView = new DialogView(context);
-        dialogView.setItems(items, (view, position, key) -> {
-            if (window != null) {
-                window.dismiss();
-            }
-            if (itemClickListener != null) {
-                itemClickListener.onItemClick(view, position, key);
-            }
-        }, false, R.dimen.sb_size_16);
-        dialogView.setBackgroundAnchor();
-
-        window.setContentView(dialogView);
+        window.setContentView(contentView);
         window.setOutsideTouchable(true);
         window.setFocusable(true);
         window.setBackgroundDrawable(ContextCompat.getDrawable(context, android.R.color.transparent));
 
         int x = getXoff(anchorView);
-        int y = getYoff(parent, anchorView, dialogView);
+        int y = getYoff(parent, anchorView, contentView);
         window.showAtLocation(anchorView, Gravity.START|Gravity.TOP, x, y);
+        anchorView.getRootView().addOnLayoutChangeListener(layoutChangeListener);
     }
 
     private static int getXoff(View anchorView) {
@@ -109,19 +121,19 @@ class MessageAnchorDialog {
         return (parentHeight / 2 > loc[1]-parentLoc[1]);
     }
 
-    void setOnItemClickListener(OnItemClickListener<Integer> itemClickListener) {
+    void setOnItemClickListener(OnItemClickListener<DialogListItem> itemClickListener) {
         this.itemClickListener = itemClickListener;
     }
 
     void setOnDismissListener(PopupWindow.OnDismissListener dismissListener) {
-        this.window.setOnDismissListener(dismissListener);
+        this.dismissListener = dismissListener;
     }
 
     public static class Builder {
         private final View anchorView;
         private final View parent;
         private final DialogListItem[] items;
-        private OnItemClickListener<Integer> itemClickListener;
+        private OnItemClickListener<DialogListItem> itemClickListener;
         private PopupWindow.OnDismissListener dismissListener;
 
         public Builder(View anchorView, View parent, DialogListItem[] items) {
@@ -130,7 +142,7 @@ class MessageAnchorDialog {
             this.items = items;
         }
 
-        public Builder setOnItemClickListener(OnItemClickListener<Integer> itemClickListener) {
+        public Builder setOnItemClickListener(OnItemClickListener<DialogListItem> itemClickListener) {
             this.itemClickListener = itemClickListener;
             return this;
         }

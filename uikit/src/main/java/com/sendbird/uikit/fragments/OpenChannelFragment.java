@@ -1,5 +1,7 @@
 package com.sendbird.uikit.fragments;
 
+import static android.app.Activity.RESULT_OK;
+
 import android.Manifest;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -44,11 +46,14 @@ import com.sendbird.uikit.activities.PhotoViewActivity;
 import com.sendbird.uikit.activities.adapter.OpenChannelMessageListAdapter;
 import com.sendbird.uikit.activities.viewholder.MessageType;
 import com.sendbird.uikit.activities.viewholder.MessageViewHolderFactory;
+import com.sendbird.uikit.consts.ClickableViewIdentifier;
 import com.sendbird.uikit.consts.KeyboardDisplayType;
 import com.sendbird.uikit.consts.StringSet;
 import com.sendbird.uikit.databinding.SbFragmentOpenChannelBinding;
 import com.sendbird.uikit.interfaces.CustomParamsHandler;
 import com.sendbird.uikit.interfaces.LoadingDialogHandler;
+import com.sendbird.uikit.interfaces.OnIdentifiableItemClickListener;
+import com.sendbird.uikit.interfaces.OnIdentifiableItemLongClickListener;
 import com.sendbird.uikit.interfaces.OnInputTextChangedListener;
 import com.sendbird.uikit.interfaces.OnItemClickListener;
 import com.sendbird.uikit.interfaces.OnItemLongClickListener;
@@ -69,12 +74,14 @@ import com.sendbird.uikit.utils.TextUtils;
 import com.sendbird.uikit.vm.FileDownloader;
 import com.sendbird.uikit.vm.OpenChannelViewModel;
 import com.sendbird.uikit.vm.ViewModelFactory;
+import com.sendbird.uikit.widgets.MessageInputView;
 import com.sendbird.uikit.widgets.PagerRecyclerView;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static android.app.Activity.RESULT_OK;
 
 /**
  * Fragment displaying the list of messages in the channel.
@@ -83,8 +90,8 @@ import static android.app.Activity.RESULT_OK;
  *
  * @since 2.0.0
  */
-public class OpenChannelFragment extends BaseOpenChannelFragment implements OnItemClickListener<BaseMessage>,
-        OnItemLongClickListener<BaseMessage>, LoadingDialogHandler {
+public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIdentifiableItemClickListener<BaseMessage>,
+        OnIdentifiableItemLongClickListener<BaseMessage>, LoadingDialogHandler {
 
     private static final int CAPTURE_IMAGE_PERMISSIONS_REQUEST_CODE = 2001;
     private static final int PICK_IMAGE_PERMISSIONS_REQUEST_CODE = 2002;
@@ -100,7 +107,7 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
     private MessageAnchorDialog messageAnchorDialog;
 
     private Uri mediaUri;
-    private long editMessageId;
+    @Nullable private BaseMessage targetMessage;
 
     private boolean hasHeaderDescription;
     private View.OnClickListener headerLeftButtonListener;
@@ -108,6 +115,8 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
     private OnItemClickListener<BaseMessage> profileClickListener;
     private OnItemClickListener<BaseMessage> itemClickListener;
     private OnItemLongClickListener<BaseMessage> itemLongClickListener;
+    private OnIdentifiableItemClickListener<BaseMessage> listItemClickListener;
+    private OnIdentifiableItemLongClickListener<BaseMessage> listItemLongClickListener;
     private View.OnClickListener inputLeftButtonListener;
     private MessageListParams params;
     private LoadingDialogHandler loadingDialogHandler;
@@ -199,7 +208,7 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
     }
 
     private OpenChannelViewModel createViewModel(OpenChannel channel) {
-        return new ViewModelProvider(getActivity(), new ViewModelFactory(channel, params)).get(channel.getUrl(), OpenChannelViewModel.class);
+        return new ViewModelProvider(getViewModelStore(), new ViewModelFactory(channel, params)).get(channel.getUrl(), OpenChannelViewModel.class);
     }
 
     private void drawChannel(OpenChannel channel) {
@@ -209,34 +218,16 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
                 binding.chvChannelHeader.getTitleTextView().setText(channel.getName());
             }
             ChannelUtils.loadChannelCover(binding.chvChannelHeader.getProfileView(), channel);
-            drawMessageInput(channel);
+            binding.tvInformation.setVisibility(channel.isFrozen() ? View.VISIBLE : View.GONE);
+            binding.tvInformation.setText(R.string.sb_text_information_channel_frozen);
+            boolean isOperator = channel.isOperator(SendBird.getCurrentUser());
+            boolean isFrozen = channel.isFrozen() && !isOperator;
+            if (isFrozen) clearInput();
+            binding.vgInputBox.setEnabled(!isFrozen);
+            // set hint
+            setInputTextHint(isFrozen);
             updateHeaderParticipantCount();
         }
-    }
-
-    private void drawMessageInput(OpenChannel channel) {
-        boolean isOperator = channel.isOperator(SendBird.getCurrentUser());
-        boolean isMuted = false;
-        boolean isFrozen = channel.isFrozen() && !isOperator;
-        if (isMuted || isFrozen) {
-            enableMessageInput(false, getResources().getString(isFrozen ? R.string.sb_text_channel_input_text_hint_frozen : R.string.sb_text_channel_input_text_hint_muted));
-        } else {
-            enableMessageInput(true, inputHint);
-        }
-
-        binding.tvInformation.setVisibility(channel.isFrozen() ? View.VISIBLE : View.GONE);
-        binding.tvInformation.setText(R.string.sb_text_information_channel_frozen);
-
-        boolean isEnabled = !isMuted && !isFrozen;
-        String hintText = isEnabled ? inputHint : getResources().getString(isMuted ? R.string.sb_text_channel_input_text_hint_muted : R.string.sb_text_channel_input_text_hint_frozen);
-        Logger.dev("++ hint text : " + hintText);
-        enableMessageInput(isEnabled, hintText);
-    }
-
-    private void enableMessageInput(boolean isEnable, String hintText) {
-        binding.vgInputBox.setEnabled(isEnable);
-        binding.vgInputBox.setInputTextHint(hintText);
-        if (!isEnable) finishEditMode();
     }
 
     private void initHeaderOnCreated() {
@@ -281,6 +272,10 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
 
     private void initHeaderOnReady(OpenChannel channel) {
         Bundle args = getArguments();
+        boolean useHeaderProfileImage = true;
+        if (args != null) {
+            useHeaderProfileImage = args.getBoolean(StringSet.KEY_USE_HEADER_PROFILE_IMAGE, true);
+        }
         final boolean isOperator = channel.isOperator(SendBird.getCurrentUser());
         int headerRightButtonIconResId = channel.isOperator(SendBird.getCurrentUser()) ? R.drawable.icon_info : R.drawable.icon_members;
         headerRightButtonIconResId = args != null ? args.getInt(StringSet.KEY_HEADER_RIGHT_BUTTON_ICON_RES_ID, headerRightButtonIconResId) : headerRightButtonIconResId;
@@ -307,12 +302,14 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
             });
         }
 
-        binding.chvChannelHeader.getProfileView().setVisibility(View.VISIBLE);
+        binding.chvChannelHeader.getProfileView().setVisibility(useHeaderProfileImage ? View.VISIBLE : View.GONE);
         viewModel.isChannelChanged().observe(this, this::drawChannel);
         viewModel.getChannelDeleted().observe(this, deleted -> finish());
         viewModel.getMessageDeleted().observe(this, deletedMessageId -> {
-            if (binding.vgInputBox.isEditMode() && editMessageId == deletedMessageId) {
-                finishEditMode();
+            if (MessageInputView.Mode.EDIT == binding.vgInputBox.getInputMode() &&
+                    null != targetMessage &&
+                    targetMessage.getMessageId() == deletedMessageId) {
+                clearInput();
             }
         });
     }
@@ -335,7 +332,7 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
         final boolean overlayMode = args == null || args.getBoolean(StringSet.KEY_USE_OVERLAY_MODE, false);
 
         if (adapter == null) {
-            adapter = new OpenChannelMessageListAdapter(channel, null, null, useMessageGroupUI);
+            adapter = new OpenChannelMessageListAdapter(channel, useMessageGroupUI);
         }
 
         if (overlayMode) {
@@ -343,25 +340,28 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
         }
         adapter.setChannel(channel);
 
-        if (itemClickListener == null) {
-            itemClickListener = this;
+        if (itemClickListener != null) {
+            adapter.setOnItemClickListener(itemClickListener);
         }
 
-        if (itemLongClickListener == null) {
-            itemLongClickListener = this;
+        if (itemLongClickListener != null) {
+            adapter.setOnItemLongClickListener(itemLongClickListener);
         }
 
-        if (profileClickListener == null && useUserProfile) {
-            profileClickListener = (view, position, message) -> {
-                if (getContext() == null || getFragmentManager() == null) return;
-                hideKeyboard();
-                DialogUtils.buildUserProfile(getContext(), message.getSender(), false, null, null).showSingle(getFragmentManager());
-            };
+        if (listItemClickListener == null) {
+            listItemClickListener = this;
         }
 
-        adapter.setOnItemClickListener(itemClickListener);
-        adapter.setOnItemLongClickListener(itemLongClickListener);
-        adapter.setOnProfileClickListener(profileClickListener);
+        if (listItemLongClickListener == null) {
+            listItemLongClickListener = this;
+        }
+
+        if (profileClickListener != null && useUserProfile) {
+            adapter.setOnProfileClickListener(profileClickListener);
+        }
+
+        adapter.setOnListItemClickListener(listItemClickListener);
+        adapter.setOnListItemLongClickListener(listItemLongClickListener);
 
         final PagerRecyclerView recyclerView = binding.mrvMessageList.getRecyclerView();
         recyclerView.setAdapter(adapter);
@@ -382,7 +382,7 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
                 if (positionStart == 0 && adapter != null) {
                     BaseMessage message = adapter.getItem(positionStart);
                     LinearLayoutManager layoutManager = binding.mrvMessageList.getRecyclerView().getLayoutManager();
-                    if ((BaseMessage.belongsTo(message, SendBird.getCurrentUser().getUserId()) || layoutManager.findFirstVisibleItemPosition() == 0) && !isAnchorShowing()) {
+                    if ((BaseMessage.belongsTo(message, SendBird.getCurrentUser().getUserId()) || (layoutManager != null && layoutManager.findFirstVisibleItemPosition() == 0)) && !isAnchorShowing()) {
                         scrollToBottom();
                     }
                 }
@@ -393,7 +393,7 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
                 LinearLayoutManager layoutManager = binding.mrvMessageList.getRecyclerView().getLayoutManager();
-                if (layoutManager.findFirstVisibleItemPosition() > 0) {
+                if (layoutManager != null && layoutManager.findFirstVisibleItemPosition() > 0) {
                     binding.mrvMessageList.showScrollBottomButton();
                 }
             }
@@ -482,17 +482,36 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
 
         binding.vgInputBox.setOnSendClickListener(this::sendMessage);
         binding.vgInputBox.setOnAddClickListener(inputLeftButtonListener == null ? v -> showMediaSelectDialog() : inputLeftButtonListener);
-        binding.vgInputBox.setOnEditCancelClickListener(v -> finishEditMode());
+        binding.vgInputBox.setOnEditCancelClickListener(v -> clearInput());
         binding.vgInputBox.setOnEditSaveClickListener(v -> {
             String text = getEditTextString();
             if (!TextUtils.isEmpty(text)) {
                 UserMessageParams params = new UserMessageParams(text);
-                updateUserMessage(editMessageId, params);
+                if (null != targetMessage) {
+                    updateUserMessage(targetMessage.getMessageId(), params);
+                } else {
+                    Logger.d("Target message for update is missing");
+                }
             }
-            finishEditMode();
+            clearInput();
         });
         binding.vgInputBox.setOnInputTextChangedListener(inputTextChangedListener);
         binding.vgInputBox.setOnEditModeTextChangedListener(editModeTextChangedListener);
+        binding.vgInputBox.setOnInputModeChangedListener((before, current) -> {
+            boolean isOperator = channel.isOperator(SendBird.getCurrentUser());
+            boolean isFrozen = channel.isFrozen() && !isOperator;
+
+            binding.vgInputBox.setEnabled(!isFrozen);
+            // set hint
+            setInputTextHint(isFrozen);
+
+            if (MessageInputView.Mode.EDIT == current) {
+                if (targetMessage != null) binding.vgInputBox.setInputText(targetMessage.getMessage());
+                binding.vgInputBox.showKeyboard();
+            } else {
+                targetMessage = null;
+            }
+        });
     }
 
     private void hideScrollBottomButton(PagerRecyclerView.ScrollDirection direction) {
@@ -506,6 +525,15 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
         RecyclerView.LayoutManager layoutMgr = binding.mrvMessageList.getRecyclerView().getLayoutManager();
         if (layoutMgr == null) return;
         layoutMgr.scrollToPosition(0);
+    }
+
+    private void setInputTextHint(final boolean isFrozen) {
+        String hintText = inputHint;
+        if (isFrozen) {
+            hintText = getResources().getString(R.string.sb_text_channel_input_text_hint_frozen);
+        }
+        Logger.dev("++ hint text : " + hintText);
+        binding.vgInputBox.setInputTextHint(hintText);
     }
 
     /**
@@ -522,7 +550,8 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
                 new DialogListItem(R.string.sb_text_channel_input_document, R.drawable.icon_document)
         };
         hideKeyboard();
-        DialogUtils.buildItemsBottom(items, (view, position, key) -> {
+        DialogUtils.buildItemsBottom(items, (view, position, item) -> {
+            final int key = item.getKey();
             try {
                 if (key == R.string.sb_text_channel_input_camera) {
                     takeCamera();
@@ -624,11 +653,6 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
         });
     }
 
-    private void finishEditMode() {
-        binding.vgInputBox.hideEditMode();
-        editMessageId = 0L;
-    }
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -664,7 +688,6 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
             if (!TextUtils.isEmpty(text)) {
                 UserMessageParams params = new UserMessageParams(text);
                 sendUserMessage(params);
-                binding.vgInputBox.setInputText("");
             }
         }
     }
@@ -709,6 +732,7 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
             }
             onBeforeSendUserMessage(params);
             viewModel.sendUserMessage(params);
+            clearInput();
         }
     }
 
@@ -729,6 +753,7 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
                     }
                     onBeforeSendFileMessage(params);
                     viewModel.sendFileMessage(params, info);
+                    clearInput();
                 }
 
                 @Override
@@ -829,75 +854,110 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
     }
 
     @Override
-    public void onItemClick(View view, int position, BaseMessage message) {
+    public void onIdentifiableItemClick(View view, String identifier, int position, BaseMessage message) {
         Logger.d("++ OpenChannelFragment::onItemClicked()");
-        BaseMessage.SendingStatus status = message.getSendingStatus();
+        final BaseMessage.SendingStatus status = message.getSendingStatus();
+        if (status == BaseMessage.SendingStatus.PENDING) return;
 
-        if (status == BaseMessage.SendingStatus.SUCCEEDED) {
-            MessageType type = MessageViewHolderFactory.getMessageType(message);
-            switch (type) {
-                case VIEW_TYPE_FILE_MESSAGE_IMAGE_ME:
-                case VIEW_TYPE_FILE_MESSAGE_IMAGE_OTHER:
-                    startActivity(PhotoViewActivity.newIntent(getContext(), BaseChannel.ChannelType.OPEN, (FileMessage) message));
-                    break;
-                case VIEW_TYPE_FILE_MESSAGE_VIDEO_ME:
-                case VIEW_TYPE_FILE_MESSAGE_VIDEO_OTHER:
-                case VIEW_TYPE_FILE_MESSAGE_ME:
-                case VIEW_TYPE_FILE_MESSAGE_OTHER:
-                    FileMessage fileMessage = (FileMessage) message;
-                    FileDownloader.downloadFile(getContext(), fileMessage, new OnResultHandler<File>() {
-                        @Override
-                        public void onResult(File file) {
-                            showFile(file, fileMessage.getType());
-                        }
+        switch (identifier) {
+            case StringSet.Chat:
+                // ClickableViewType.Chat
+                if (status == BaseMessage.SendingStatus.SUCCEEDED) {
+                    MessageType type = MessageViewHolderFactory.getMessageType(message);
+                    switch (type) {
+                        case VIEW_TYPE_FILE_MESSAGE_IMAGE_ME:
+                        case VIEW_TYPE_FILE_MESSAGE_IMAGE_OTHER:
+                            startActivity(PhotoViewActivity.newIntent(getContext(), BaseChannel.ChannelType.OPEN, (FileMessage) message));
+                            break;
+                        case VIEW_TYPE_FILE_MESSAGE_VIDEO_ME:
+                        case VIEW_TYPE_FILE_MESSAGE_VIDEO_OTHER:
+                        case VIEW_TYPE_FILE_MESSAGE_ME:
+                        case VIEW_TYPE_FILE_MESSAGE_OTHER:
+                            FileMessage fileMessage = (FileMessage) message;
+                            FileDownloader.downloadFile(getContext(), fileMessage, new OnResultHandler<File>() {
+                                @Override
+                                public void onResult(File file) {
+                                    showFile(file, fileMessage.getType());
+                                }
 
-                        @Override
-                        public void onError(SendBirdException e) {
-                            toastError(R.string.sb_text_error_download_file);
-                        }
-                    });
-                    break;
-                default:
-            }
-        } else {
-            if (MessageUtils.isMine(message) &&
-                    (message instanceof UserMessage || message instanceof FileMessage)) {
-                resendMessage(message);
-            }
-        }
-    }
-
-    private boolean isLongClickable(BaseMessage message) {
-        BaseMessage.SendingStatus status = message.getSendingStatus();
-        switch (status) {
-            case FAILED:
-            case SUCCEEDED:
-            case CANCELED:
-                return true;
-            default:
+                                @Override
+                                public void onError(SendBirdException e) {
+                                    toastError(R.string.sb_text_error_download_file);
+                                }
+                            });
+                            break;
+                        default:
+                    }
+                } else {
+                    if (MessageUtils.isMine(message) &&
+                            (message instanceof UserMessage || message instanceof FileMessage)) {
+                        resendMessage(message);
+                    }
+                }
+                break;
+            case StringSet.Profile:
+                // ClickableViewType.Profile
+                final Bundle args = getArguments();
+                final boolean useUserProfile = args == null || args.getBoolean(StringSet.KEY_USE_USER_PROFILE, SendBirdUIKit.shouldUseDefaultUserProfile());
+                if (getContext() == null || getFragmentManager() == null || !useUserProfile) return;
+                hideKeyboard();
+                DialogUtils.buildUserProfile(getContext(), message.getSender(), false, null, null).showSingle(getFragmentManager());
                 break;
         }
-        return false;
     }
 
     @Override
-    public void onItemLongClick(View itemView, int position, BaseMessage message) {
-        if (!isLongClickable(message)) {
-            return;
-        }
-
+    public void onIdentifiableItemLongClick(View itemView, String clickableType, int position, BaseMessage message) {
         Logger.d("++ OpenChannelFragment::onItemLongClick()");
+        if (clickableType.equals(ClickableViewIdentifier.Chat.name())) {
+            final BaseMessage.SendingStatus status = message.getSendingStatus();
+            if (status == BaseMessage.SendingStatus.PENDING) return;
+
+            final List<DialogListItem> items = makeMessageContextMenu(message);
+            showMessageContextMenu(itemView, message, items);
+        }
+    }
+
+    private void showMessageContextMenu(@NonNull View anchorView, @NonNull BaseMessage message, @NonNull List<DialogListItem> items) {
+        int size = items.size();
+        final DialogListItem[] actions = items.toArray(new DialogListItem[size]);
+
+        if (MessageUtils.isUnknownType(message)) {
+            if (getContext() == null || getFragmentManager() == null) return;
+            DialogUtils
+                    .buildItemsBottom(actions, createMessageActionListener(message))
+                    .showSingle(getFragmentManager());
+        } else {
+            if (getContext() == null) return;
+            messageAnchorDialog = new MessageAnchorDialog.Builder(anchorView, binding.mrvMessageList, actions)
+                    .setOnItemClickListener(createMessageActionListener(message))
+                    .build();
+            messageAnchorDialog.show();
+        }
+    }
+
+    /**
+     * Make context menu items that are shown when the message is long clicked.
+     *
+     * @param message A clicked message.
+     * @return Collection of {@link DialogListItem}
+     * @since 2.2.3
+     */
+    @NonNull
+    protected List<DialogListItem> makeMessageContextMenu(@NonNull BaseMessage message) {
+        final List<DialogListItem> items = new ArrayList<>();
+        final BaseMessage.SendingStatus status = message.getSendingStatus();
+        if (status == BaseMessage.SendingStatus.PENDING) return items;
+
         MessageType type = MessageViewHolderFactory.getMessageType(message);
         DialogListItem copy = new DialogListItem(R.string.sb_text_channel_anchor_copy, R.drawable.icon_copy);
         DialogListItem edit = new DialogListItem(R.string.sb_text_channel_anchor_edit, R.drawable.icon_edit);
         DialogListItem save = new DialogListItem(R.string.sb_text_channel_anchor_save, R.drawable.icon_download);
         DialogListItem delete = new DialogListItem(R.string.sb_text_channel_anchor_delete, R.drawable.icon_delete);
-
         DialogListItem retry = new DialogListItem(R.string.sb_text_channel_anchor_retry, 0);
         DialogListItem deleteFailed = new DialogListItem(R.string.sb_text_channel_anchor_delete, 0);
 
         DialogListItem[] actions = null;
-        BaseMessage.SendingStatus status = message.getSendingStatus();
         switch (type) {
             case VIEW_TYPE_USER_MESSAGE_ME:
                 if (status == BaseMessage.SendingStatus.SUCCEEDED) {
@@ -930,62 +990,93 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
         }
 
         if (actions != null) {
-            if (MessageUtils.isUnknownType(message)) {
-                if (getContext() == null || getFragmentManager() == null) return;
-                DialogUtils
-                        .buildItemsBottom(actions, createMessageActionListener(message))
-                        .showSingle(getFragmentManager());
+            items.addAll(Arrays.asList(actions));
+        }
+        return items;
+    }
+
+    /**
+     * It will be called when the message context menu was clicked.
+     *
+     * @param message A clicked message.
+     * @param view The view that was clicked.
+     * @param position The position that was clicked.
+     * @param item {@link DialogListItem} that was clicked.
+     * @return <code>true</code> if long click event was handled, <code>false</code> otherwise.
+     * @since 2.2.3
+     */
+    protected boolean onMessageContextMenuItemClicked(@NonNull BaseMessage message, @NonNull View view, int position, @NonNull DialogListItem item) {
+        final int key = item.getKey();
+        if (key == R.string.sb_text_channel_anchor_copy) {
+            copyTextToClipboard(message.getMessage());
+            return true;
+        } else if (key == R.string.sb_text_channel_anchor_edit) {
+            editMessage(message);
+            return true;
+        } else if (key == R.string.sb_text_channel_anchor_delete) {
+            if (MessageUtils.isFailed(message)) {
+                Logger.dev("delete");
+                deleteMessage(message);
             } else {
-                if (getContext() == null) return;
-                messageAnchorDialog = new MessageAnchorDialog.Builder(itemView, binding.mrvMessageList, actions)
-                        .setOnItemClickListener(createMessageActionListener(message))
-                        .build();
-                messageAnchorDialog.show();
+                showWarningDialog(message);
             }
+            return true;
+        } else if (key == R.string.sb_text_channel_anchor_save) {
+            if (message instanceof FileMessage) {
+                saveFileMessage((FileMessage) message);
+            }
+            return true;
+        } else if (key == R.string.sb_text_channel_anchor_retry) {
+            resendMessage(message);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Download {@link FileMessage} into external storage.
+     * It needs to have a permission.
+     * If current application needs permission, the request of permission will call automatically.
+     * After permission is granted, the download will be also called automatically.
+     *
+     * @param message A file message to download contents.
+     * @since 2.2.3
+     */
+    protected void saveFileMessage(@NonNull FileMessage message) {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+            download(message);
+        } else {
+            checkPermission(PERMISSION_REQUEST_STORAGE, new PermissionFragment.IPermissionHandler() {
+                @Override
+                @NonNull
+                public String[] getPermissions(int requestCode) {
+                    return new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            Manifest.permission.READ_EXTERNAL_STORAGE};
+                }
+
+                @Override
+                public void onPermissionGranted(int requestCode) {
+                    download(message);
+                }
+            });
         }
     }
 
+    @NonNull
+    private OnItemClickListener<DialogListItem> createMessageActionListener(@NonNull BaseMessage message) {
+        return (view, position, item) -> onMessageContextMenuItemClicked(message, view, position, item);
+    }
+
+    private void clearInput() {
+        binding.vgInputBox.setInputMode(MessageInputView.Mode.DEFAULT);
+        binding.vgInputBox.setInputText("");
+    }
 
     private void hideKeyboard() {
         if (getView() != null) {
             SoftInputUtils.hideSoftKeyboard(getView());
         }
-    }
-
-    private OnItemClickListener<Integer> createMessageActionListener(BaseMessage message) {
-        return (view, position, key) -> {
-            if (key == R.string.sb_text_channel_anchor_copy) {
-                copyTextToClipboard(message.getMessage());
-            } else if (key == R.string.sb_text_channel_anchor_edit) {
-                editMessage(message);
-            } else if (key == R.string.sb_text_channel_anchor_delete) {
-                if (MessageUtils.isFailed(message)) {
-                    Logger.dev("delete");
-                    deleteMessage(message);
-                } else {
-                    showWarningDialog(message);
-                }
-            } else if (key == R.string.sb_text_channel_anchor_save) {
-                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
-                    download((FileMessage) message);
-                } else {
-                    checkPermission(PERMISSION_REQUEST_STORAGE, new IPermissionHandler() {
-                        @Override
-                        public String[] getPermissions(int requestCode) {
-                            return new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                                    Manifest.permission.READ_EXTERNAL_STORAGE};
-                        }
-
-                        @Override
-                        public void onPermissionGranted(int requestCode) {
-                            download((FileMessage) message);
-                        }
-                    });
-                }
-            } else if (key == R.string.sb_text_channel_anchor_retry) {
-                resendMessage(message);
-            }
-        };
     }
 
     private void download(@NonNull FileMessage fileMessage) {
@@ -1023,8 +1114,8 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
     }
 
     private void editMessage(BaseMessage message) {
-        editMessageId = message.getMessageId();
-        binding.vgInputBox.showEditMode(message.getMessage());
+        targetMessage = message;
+        binding.vgInputBox.setInputMode(MessageInputView.Mode.EDIT);
     }
 
     private void showWarningDialog(BaseMessage message) {
@@ -1090,6 +1181,14 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
         this.editModeTextChangedListener = editModeTextChangedListener;
     }
 
+    private void setOnListItemClickListener(OnIdentifiableItemClickListener<BaseMessage> listItemClickListener) {
+        this.listItemClickListener = listItemClickListener;
+    }
+
+    private void setOnListItemLongClickListener(OnIdentifiableItemLongClickListener<BaseMessage> listItemLongClickListener) {
+        this.listItemLongClickListener = listItemLongClickListener;
+    }
+
     /**
      * This is a Builder that is able to create the OpenChannel fragment.
      * The builder provides options how the channel is showing and working. Also you can set the event handler what you want to override.
@@ -1110,6 +1209,9 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
         private LoadingDialogHandler loadingDialogHandler;
         private OnInputTextChangedListener inputTextChangedListener;
         private OnInputTextChangedListener editModeTextChangedListener;
+
+        private OnIdentifiableItemClickListener<BaseMessage> listItemClickListener;
+        private OnIdentifiableItemLongClickListener<BaseMessage> listItemLongClickListener;
 
         /**
          * Constructor
@@ -1383,7 +1485,9 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
          *
          * @param itemClickListener The callback that will run.
          * @return This Builder object to allow for chaining of calls to set methods.
+         * @deprecated As of 2.2.0, replaced by {@link Builder#setOnListItemClickListener(OnIdentifiableItemClickListener)}
          */
+        @Deprecated
         public Builder setItemClickListener(OnItemClickListener<BaseMessage> itemClickListener) {
             this.itemClickListener = itemClickListener;
             return this;
@@ -1394,7 +1498,9 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
          *
          * @param itemLongClickListener The callback that will run.
          * @return This Builder object to allow for chaining of calls to set methods.
+         * @deprecated As of 2.2.0, replaced by {@link Builder#setOnListItemLongClickListener(OnIdentifiableItemLongClickListener)}
          */
+        @Deprecated
         public Builder setItemLongClickListener(OnItemLongClickListener<BaseMessage> itemLongClickListener) {
             this.itemLongClickListener = itemLongClickListener;
             return this;
@@ -1439,7 +1545,9 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
          *
          * @param profileClickListener The callback that will run.
          * @return This Builder object to allow for chaining of calls to set methods.
+         * @deprecated As of 2.2.0, replaced by {@link Builder#setOnListItemClickListener(OnIdentifiableItemClickListener)}
          */
+        @Deprecated
         public Builder setOnProfileClickListener(OnItemClickListener<BaseMessage> profileClickListener) {
             this.profileClickListener = profileClickListener;
             return this;
@@ -1562,6 +1670,42 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
         }
 
         /**
+         * Sets the click listener on the item of message list.
+         *
+         * @param itemClickListener The callback that will run.
+         * @return This Builder object to allow for chaining of calls to set methods.
+         * @since 2.2.0
+         */
+        public Builder setListItemClickListener(OnIdentifiableItemClickListener<BaseMessage> itemClickListener) {
+            this.listItemClickListener = itemClickListener;
+            return this;
+        }
+
+        /**
+         * Sets the long click listener on the item of message list.
+         *
+         * @param itemLongClickListener The callback that will run.
+         * @return This Builder object to allow for chaining of calls to set methods.
+         * @since 2.2.0
+         */
+        public Builder setListItemLongClickListener(OnIdentifiableItemLongClickListener<BaseMessage> itemLongClickListener) {
+            this.listItemLongClickListener = itemLongClickListener;
+            return this;
+        }
+
+        /**
+         * Sets whether the profile image of the header is used.
+         *
+         * @param useHeaderProfileImage <code>true</code> if the profile image of the header is used, <code>false</code> otherwise.
+         * @return This Builder object to allow for chaining of calls to set methods.
+         * @since 2.2.4
+         */
+        public Builder setUseHeaderProfileImage(boolean useHeaderProfileImage) {
+            bundle.putBoolean(StringSet.KEY_USE_HEADER_PROFILE_IMAGE, useHeaderProfileImage);
+            return this;
+        }
+
+        /**
          * Creates an {@link OpenChannelFragment} with the arguments supplied to this
          * builder.
          *
@@ -1581,6 +1725,8 @@ public class OpenChannelFragment extends BaseOpenChannelFragment implements OnIt
             fragment.setLoadingDialogHandler(loadingDialogHandler);
             fragment.setOnInputTextChangedListener(inputTextChangedListener);
             fragment.setOnEditModeTextChangedListener(editModeTextChangedListener);
+            fragment.setOnListItemClickListener(listItemClickListener);
+            fragment.setOnListItemLongClickListener(listItemLongClickListener);
             return fragment;
         }
     }
