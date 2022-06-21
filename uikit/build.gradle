@@ -19,7 +19,7 @@ android {
 
             libraryVariants.all { variant ->
                 variant.outputs.all {
-                    def aarName = "sendbird-uikit-${project.version}-${variant.buildType.name}.aar"
+                    def aarName = "sendbird-uikit-${project.version}.aar"
 
                     println "\n============================================================"
                     println "project module : Sendbird UIKit"
